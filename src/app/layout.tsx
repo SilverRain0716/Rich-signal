@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
@@ -6,8 +6,26 @@ const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Rich Signal | Premium Intelligence for Global Investors",
-  description: "LS증권 수급 데이터와 글로벌 거시 지표를 융합한 AI 기반 투자 인텔리전스 대시보드",
+  title: "Rich Signal",
+  description: "실시간 수급 레이더 · AI 매매 후보 · 프리미엄 투자 인텔리전스",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "Rich Signal",
+  },
+  icons: {
+    icon: "/icons/icon-192.png",
+    apple: "/icons/icon-512.png",
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#060E1F",
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

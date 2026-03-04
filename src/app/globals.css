@@ -41,3 +41,13 @@ body {
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: rgba(212,175,55,0.2); border-radius: 2px; }
 ::-webkit-scrollbar-thumb:hover { background: rgba(212,175,55,0.4); }
+
+/* Safe area (노치, 홈 인디케이터 대응) */
+.safe-top    { padding-top: env(safe-area-inset-top); }
+.safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
+
+/* 헤더 높이 */
+.h-13 { height: 3.25rem; }
+
+/* 탭바 위 여백 */
+.pb-24 { padding-bottom: 6rem; }
