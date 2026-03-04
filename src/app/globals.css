@@ -1,68 +1,48 @@
-/**
- * Rich Signal - globals.css
- * 다크 Glassmorphism 테마 + 긴급 알림 애니메이션
- */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
   --blue-primary: #1E40AF;
-  --gold-accent: #D4AF37;
-  --dark-bg: #060E1F;
+  --gold:         #D4AF37;
+  --dark:         #060E1F;
 }
 
 body {
-  background-color: var(--dark-bg);
+  background-color: var(--dark);
   color: white;
   -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
 }
 
-/* 다크 배경 유틸리티 */
+/* 메인 배경 - 미묘한 그라디언트 */
 .bg-rich-dark {
-  background: radial-gradient(ellipse at 20% 10%, #0d1f4a 0%, #060E1F 60%);
+  background:
+    radial-gradient(ellipse 60% 40% at 15% 0%, rgba(30,64,175,0.12) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 30% at 85% 100%, rgba(212,175,55,0.05) 0%, transparent 50%),
+    #060E1F;
   min-height: 100vh;
 }
 
-/* 글래스모피즘 카드 */
-.glass-card {
-  @apply bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl;
-  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+/* 미세 격자 패턴 */
+.bg-rich-dark::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+  z-index: 0;
 }
 
-.glass-card:hover {
-  @apply border-[#D4AF37]/30;
-  box-shadow: 0 0 30px rgba(212, 175, 55, 0.08);
-}
-
-/* 골드 포인트 카드 */
-.gold-card {
-  @apply glass-card border-t-2 border-t-[#D4AF37];
-}
+.bg-rich-dark > * { position: relative; z-index: 1; }
 
 /* 스크롤바 */
-::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar { width: 3px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #D4AF37/30; border-radius: 2px; }
+::-webkit-scrollbar-thumb { background: rgba(212,175,55,0.2); border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(212,175,55,0.4); }
 
-/* 긴급 알림 - 배경 전체 펄스 */
-@keyframes alert-pulse-bg {
-  0%, 100% { background-color: rgba(239, 68, 68, 0.02); }
-  50%       { background-color: rgba(239, 68, 68, 0.06); }
-}
-
-.alert-active body {
-  animation: alert-pulse-bg 2s ease-in-out infinite;
-}
-
-/* 골드 글로우 텍스트 */
-.text-gold-glow {
-  color: #D4AF37;
-  text-shadow: 0 0 20px rgba(212, 175, 55, 0.4);
-}
-
-/* 시그널 강도 바 */
-.signal-bar {
-  @apply h-1 rounded-full bg-gradient-to-r from-[#1E40AF] to-[#D4AF37];
-}
+/* border 커스텀 */
+.border-white\/8  { border-color: rgba(255,255,255,0.08); }
