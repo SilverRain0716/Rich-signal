@@ -1,30 +1,45 @@
-import { google } from '@ai-sdk/google';
-import { generateObject } from 'ai';
-import { z } from 'zod';
+/**
+ * GET /api/market-insight
+ * Data Fusion Engine으로 업그레이드
+ * LS증권 수급 × 거시지표 × Gemini 1.5 Pro → 리포트
+ *
+ * ?refresh=true + x-admin-key 헤더 → 강제 재생성
+ */
 
-export const maxDuration = 30;
+import { NextRequest, NextResponse } from 'next/server';
+import { runFusionEngine } from '@/services/ai-engine/fusion';
 
-export async function GET() {
+export const dynamic = 'force-dynamic';
+export const maxDuration = 60;
+
+export async function GET(req: NextRequest) {
   try {
-    const { object } = await generateObject({
-      model: google('gemini-1.5-flash'),
-      schema: z.object({
-        summary: z.string().describe('미 증시 핵심 요약 (1문장)'),
-        signals: z.array(z.object({
-          sector: z.string().describe('상승 예상 국장 섹터'),
-          relatedStock: z.string().describe('대표 관련주'),
-          logic: z.string().describe('인과관계 분석'),
-          strength: z.number().describe('시그널 강도 (1-10)')
-        })),
-        premiumNote: z.string().describe('고액 자산가를 위한 한 줄 조언')
-      }),
-      prompt: `당신은 '리치 시그널'의 수석 애널리스트입니다. 
-               현재 나스닥 및 S&P 500의 흐름을 바탕으로 내일 한국 증시에서 
-               가장 유망한 섹터 3개를 선정하고 그 이유를 전문적으로 분석하세요.`,
-    });
+    const forceRefresh = req.nextUrl.searchParams.get('refresh') === 'true';
 
-    return Response.json(object);
-  } catch (error) {
-    return Response.json({ error: 'Failed to fetch signal' }, { status: 500 });
+    if (forceRefresh) {
+      const key = req.headers.get('x-admin-key');
+      if (key !== process.env.ADMIN_SECRET_KEY) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      }
+    }
+
+    const report = await runFusionEngine(forceRefresh);
+
+    return NextResponse.json(
+      { success: true, data: report },
+      {
+        headers: {
+          'Cache-Control': report.meta.cacheHit ? 'public, max-age=3600' : 'public, max-age=300',
+          'X-Cache-Hit': String(report.meta.cacheHit),
+          'X-Generated-At': report.meta.generatedAt,
+        },
+      }
+    );
+  } catch (err) {
+    console.error('[/api/market-insight]', err);
+    return NextResponse.json(
+      { success: false, error: err instanceof Error ? err.message : 'Unknown error' },
+      { status: 500 }
+    );
   }
 }

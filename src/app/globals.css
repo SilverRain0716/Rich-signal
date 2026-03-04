@@ -1,37 +1,68 @@
 /**
- * 경로: /src/app/globals.css
- * 공통 UI 컴포넌트 스타일을 정의합니다.
+ * Rich Signal - globals.css
+ * 다크 Glassmorphism 테마 + 긴급 알림 애니메이션
  */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  --background: #F9FAFB;
-  --foreground: #111827;
+  --blue-primary: #1E40AF;
+  --gold-accent: #D4AF37;
+  --dark-bg: #060E1F;
 }
 
 body {
-  color: var(--foreground);
-  background: var(--background);
+  background-color: var(--dark-bg);
+  color: white;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* 프리미엄 카드 디자인: 부드러운 그림자와 골드 포인트 */
-.premium-card {
-  @apply bg-white border border-slate-100 shadow-sm transition-all duration-300 rounded-2xl overflow-hidden;
+/* 다크 배경 유틸리티 */
+.bg-rich-dark {
+  background: radial-gradient(ellipse at 20% 10%, #0d1f4a 0%, #060E1F 60%);
+  min-height: 100vh;
 }
 
-.premium-card:hover {
-  @apply shadow-xl border-[#D4AF37]/40 -translate-y-1.5;
+/* 글래스모피즘 카드 */
+.glass-card {
+  @apply bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
-/* 텍스트 하이라이트 */
-.text-gold {
+.glass-card:hover {
+  @apply border-[#D4AF37]/30;
+  box-shadow: 0 0 30px rgba(212, 175, 55, 0.08);
+}
+
+/* 골드 포인트 카드 */
+.gold-card {
+  @apply glass-card border-t-2 border-t-[#D4AF37];
+}
+
+/* 스크롤바 */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #D4AF37/30; border-radius: 2px; }
+
+/* 긴급 알림 - 배경 전체 펄스 */
+@keyframes alert-pulse-bg {
+  0%, 100% { background-color: rgba(239, 68, 68, 0.02); }
+  50%       { background-color: rgba(239, 68, 68, 0.06); }
+}
+
+.alert-active body {
+  animation: alert-pulse-bg 2s ease-in-out infinite;
+}
+
+/* 골드 글로우 텍스트 */
+.text-gold-glow {
   color: #D4AF37;
+  text-shadow: 0 0 20px rgba(212, 175, 55, 0.4);
 }
 
-.bg-premium-blue {
-  background-color: #1E40AF;
+/* 시그널 강도 바 */
+.signal-bar {
+  @apply h-1 rounded-full bg-gradient-to-r from-[#1E40AF] to-[#D4AF37];
 }
