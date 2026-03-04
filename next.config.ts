@@ -12,6 +12,8 @@ const withPWA = withPWAInit({
   },
 });
 
-const nextConfig: NextConfig = {};
+const nextConfig: NextConfig = {
+  turbopack: {}, // Turbopack 명시적 활성화 (next-pwa webpack 경고 억제)
+};
 
 export default withPWA(nextConfig);
