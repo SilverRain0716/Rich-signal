@@ -1,11 +1,9 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
 :root {
   --blue-primary: #1E40AF;
-  --gold:         #D4AF37;
-  --dark:         #060E1F;
+  --gold: #D4AF37;
+  --dark: #060E1F;
 }
 
 body {
@@ -14,7 +12,6 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* 메인 배경 - 미묘한 그라디언트 */
 .bg-rich-dark {
   background:
     radial-gradient(ellipse 60% 40% at 15% 0%, rgba(30,64,175,0.12) 0%, transparent 60%),
@@ -23,7 +20,6 @@ body {
   min-height: 100vh;
 }
 
-/* 미세 격자 패턴 */
 .bg-rich-dark::before {
   content: '';
   position: fixed;
@@ -36,13 +32,12 @@ body {
   z-index: 0;
 }
 
-.bg-rich-dark > * { position: relative; z-index: 1; }
+.bg-rich-dark > * {
+  position: relative;
+  z-index: 1;
+}
 
-/* 스크롤바 */
 ::-webkit-scrollbar { width: 3px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: rgba(212,175,55,0.2); border-radius: 2px; }
 ::-webkit-scrollbar-thumb:hover { background: rgba(212,175,55,0.4); }
-
-/* border 커스텀 */
-.border-white\/8  { border-color: rgba(255,255,255,0.08); }
