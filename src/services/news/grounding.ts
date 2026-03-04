@@ -31,7 +31,7 @@ export async function fetchTodayNewsContext(
     });
 
     const { object } = await generateObject({
-      model: google('gemini-1.5-pro'),
+      model: google('gemini-2.0-flash'),
       schema: NewsSchema,
       prompt: `오늘 ${today} 한국 주식 트레이더를 위한 시장 컨텍스트 분석:
 

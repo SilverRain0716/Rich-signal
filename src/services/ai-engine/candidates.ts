@@ -10,35 +10,29 @@ import { collectMacro } from '../macro/indicators';
 import { getStockFlows, getSectorFlows, getVolumeSpikes } from '../ls-sec/endpoints';
 import { fetchTodayNewsContext } from '../news/grounding';
 
-// ─── 스키마 ─────────────────────────────────────────────────
-
 export const CandidateSchema = z.object({
   candidates: z.array(z.object({
-    code: z.string().describe('종목코드 (6자리)'),
-    name: z.string().describe('종목명'),
-    sector: z.string().describe('섹터'),
-    signal: z.enum(['BUY', 'WATCH']).describe('BUY: 오늘 진입 가능 / WATCH: 모니터링'),
-    confidence: z.number().min(1).max(10).describe('신뢰도 1~10'),
-    buyReason: z.string().describe('매수 근거 - 수급+시장 인과관계 60자 이내'),
-    catalyst: z.string().describe('핵심 촉매 40자 이내'),
-    entryNote: z.string().describe('진입 전략 40자 이내'),
-    stopLoss: z.string().describe('손절 기준 40자 이내'),
-    risk: z.string().describe('주요 리스크 30자 이내'),
+    code: z.string(),
+    name: z.string(),
+    sector: z.string(),
+    signal: z.enum(['BUY', 'WATCH']),
+    confidence: z.number().min(1).max(10),
+    buyReason: z.string(),
+    catalyst: z.string(),
+    entryNote: z.string(),
+    stopLoss: z.string(),
+    risk: z.string(),
   })).min(3).max(5),
   marketCondition: z.enum(['FAVORABLE', 'NEUTRAL', 'RISKY']),
-  todayTheme: z.string().describe('오늘의 핵심 투자 테마 20자 이내'),
-  oneLiner: z.string().describe('오늘 시장 한 줄 요약 50자 이내'),
+  todayTheme: z.string(),
+  oneLiner: z.string(),
   generatedAt: z.string(),
 });
 
 export type TradingCandidates = z.infer<typeof CandidateSchema>;
 
-// ─── 메모리 캐시 (15분) ────────────────────────────────────
-
 let _cache: { data: TradingCandidates; ts: number } | null = null;
 const CACHE_MS = 15 * 60 * 1000;
-
-// ─── 프롬프트 ────────────────────────────────────────────────
 
 function buildPrompt(args: {
   macro: Awaited<ReturnType<typeof collectMacro>>;
@@ -47,51 +41,50 @@ function buildPrompt(args: {
   spikes: Awaited<ReturnType<typeof getVolumeSpikes>>;
   news: Awaited<ReturnType<typeof fetchTodayNewsContext>>;
 }) {
+  const fmt = (n: number, d = 1) => `${n >= 0 ? '+' : ''}${n.toFixed(d)}`;
+
   const stockList = args.stocks.slice(0, 12).map((s, i) =>
-    `${i + 1}. ${s.name}(${s.code}) | 등락 ${s.chgRate >= 0 ? '+' : ''}${s.chgRate.toFixed(1)}% | 외인 ${s.frgQty >= 0 ? '+' : ''}${s.frgQty.toLocaleString()}주 | 기관 ${s.orgQty >= 0 ? '+' : ''}${s.orgQty.toLocaleString()}주 | 거래대금 ${(s.trAmount / 1e8).toFixed(0)}억`
-  ).join('\n');
+    `${i + 1}. ${s.name}(${s.code}) | ${fmt(s.chgRate)}% | 외인 ${fmt(s.frgQty, 0)}주 | 기관 ${fmt(s.orgQty, 0)}주`
+  ).join('\n') || '장 시작 전 또는 데이터 없음';
 
   const sectorList = args.sectors.slice(0, 8).map(s =>
-    `• ${s.name}: 외인 ${s.frgNetBuy >= 0 ? '+' : ''}${(s.frgNetBuy / 1e8).toFixed(0)}억 | 기관 ${s.orgNetBuy >= 0 ? '+' : ''}${(s.orgNetBuy / 1e8).toFixed(0)}억`
-  ).join('\n');
+    `• ${s.name}: 외인 ${fmt(s.frgNetBuy / 1e8, 0)}억 | 기관 ${fmt(s.orgNetBuy / 1e8, 0)}억`
+  ).join('\n') || '데이터 없음';
 
   const spikeList = args.spikes.slice(0, 5).map(s =>
-    `• ${s.name}: 거래대금 전일比 +${s.spikeRatio.toFixed(0)}% 급증`
-  ).join('\n');
+    `• ${s.name}: 거래대금 +${s.spikeRatio.toFixed(0)}% 급증`
+  ).join('\n') || '없음';
 
   return `당신은 한국 주식 트레이더의 AI 분석 파트너입니다.
-아래 데이터를 분석해서 오늘 실제 매매 가능한 종목을 선별해주세요.
+오늘 실제 매매 가능한 종목을 선별해주세요.
 
 ## 시장 컨텍스트
-미장 요약: ${args.news.usMarketSummary}
+미장: ${args.news.usMarketSummary}
 국장 영향: ${args.news.krMarketCatalyst}
-주요 리스크: ${args.news.keyRisk}
+리스크: ${args.news.keyRisk}
 
 ## 거시 지표
-- USD/KRW: ${args.macro.usdKrw}원 | S&P500: ${args.macro.sp500Change >= 0 ? '+' : ''}${args.macro.sp500Change.toFixed(2)}% | 나스닥100: ${args.macro.nasdaqChange >= 0 ? '+' : ''}${args.macro.nasdaqChange.toFixed(2)}%
-- 공포탐욕지수: ${args.macro.fearGreed}/100 | 미장 주도섹터: ${args.macro.dominantSector}
+USD/KRW ${args.macro.usdKrw}원 | S&P500 ${fmt(args.macro.sp500Change)}% | 나스닥 ${fmt(args.macro.nasdaqChange)}%
+공포탐욕 ${args.macro.fearGreed}/100 | 미장 주도: ${args.macro.dominantSector}
 
-## 외인+기관 동시 순매수 종목
-${stockList || '장 시작 전 / 데이터 없음'}
+## 외인+기관 순매수 종목
+${stockList}
 
 ## 섹터별 수급
-${sectorList || '데이터 없음'}
+${sectorList}
 
-## 거래대금 급증 (세력 포착)
-${spikeList || '없음'}
+## 거래대금 급증
+${spikeList}
 
 ---
 선별 기준:
 1. 시장 컨텍스트 + 수급이 동시에 뒷받침되는 종목 우선
 2. 외인+기관 동시 매수 종목에 가중치
-3. 거래대금 급증 + 수급 유입 = 강한 시그널
-4. BUY는 오늘 당일 진입 가능한 것만. 애매하면 WATCH
-5. 데이터에 없어도 섹터 흐름으로 추론한 대표주 포함 가능
+3. BUY = 오늘 진입 가능 / 애매하면 WATCH
+4. 데이터가 없으면 섹터 흐름으로 대표주 추론
 
 generatedAt: "${new Date().toISOString()}"`;
 }
-
-// ─── 메인 ────────────────────────────────────────────────────
 
 export async function generateTradingCandidates(force = false): Promise<TradingCandidates> {
   if (!force && _cache && Date.now() - _cache.ts < CACHE_MS) {
@@ -101,6 +94,7 @@ export async function generateTradingCandidates(force = false): Promise<TradingC
 
   const t0 = Date.now();
 
+  // 데이터 병렬 수집 (각각 실패해도 계속 진행)
   const [macroR, stocksR, sectorsR, spikesR] = await Promise.allSettled([
     collectMacro(),
     getStockFlows(15),
@@ -116,21 +110,18 @@ export async function generateTradingCandidates(force = false): Promise<TradingC
   const sectors = sectorsR.status === 'fulfilled' ? sectorsR.value : [];
   const spikes = spikesR.status === 'fulfilled' ? spikesR.value : [];
 
-  // 뉴스 컨텍스트 (거시 데이터 기반)
-  const news = await fetchTodayNewsContext(
-    macro.sp500Change,
-    macro.nasdaqChange,
-    macro.fearGreed,
-  );
+  const news = await fetchTodayNewsContext(macro.sp500Change, macro.nasdaqChange, macro.fearGreed);
+
+  console.log(`[Candidates] 데이터 수집 완료: ${Date.now() - t0}ms | 종목 ${stocks.length}개 | 섹터 ${sectors.length}개`);
 
   const { object } = await generateObject({
-    model: google('gemini-1.5-pro'),
+    model: google('gemini-2.0-flash'),
     schema: CandidateSchema,
     prompt: buildPrompt({ macro, stocks, sectors, spikes, news }),
     temperature: 0.2,
   });
 
   _cache = { data: object, ts: Date.now() };
-  console.log(`[Candidates] 완료: ${Date.now() - t0}ms`);
+  console.log(`[Candidates] AI 완료: 총 ${Date.now() - t0}ms`);
   return object;
 }

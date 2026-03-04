@@ -150,7 +150,7 @@ export async function runFusionEngine(forceRefresh = false): Promise<FusionRepor
 
   const t1 = Date.now();
   const { object } = await generateObject({
-    model: google('gemini-1.5-pro'),
+    model: google('gemini-2.0-flash'),
     schema: FusionReportSchema,
     prompt,
     temperature: 0.3,
@@ -180,7 +180,7 @@ export async function runAlertEngine(
   const prompt = buildAlertPrompt(kospiChg, kosdaqChg, macro);
 
   const { object } = await generateObject({
-    model: google('gemini-1.5-flash'), // 빠른 응답을 위해 Flash
+    model: google('gemini-2.0-flash'), // 빠른 응답을 위해 Flash
     schema: AlertSchema,
     prompt,
     temperature: 0.1,
