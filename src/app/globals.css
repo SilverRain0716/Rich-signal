@@ -1,0 +1,37 @@
+/**
+ * 경로: /src/app/globals.css
+ * 공통 UI 컴포넌트 스타일을 정의합니다.
+ */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #F9FAFB;
+  --foreground: #111827;
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* 프리미엄 카드 디자인: 부드러운 그림자와 골드 포인트 */
+.premium-card {
+  @apply bg-white border border-slate-100 shadow-sm transition-all duration-300 rounded-2xl overflow-hidden;
+}
+
+.premium-card:hover {
+  @apply shadow-xl border-[#D4AF37]/40 -translate-y-1.5;
+}
+
+/* 텍스트 하이라이트 */
+.text-gold {
+  color: #D4AF37;
+}
+
+.bg-premium-blue {
+  background-color: #1E40AF;
+}
